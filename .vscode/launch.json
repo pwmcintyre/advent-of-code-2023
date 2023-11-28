@@ -2,6 +2,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "CLI",
+            "request": "launch",
+            "mainClass": "io.pwmcintyre.CLI",
+            "projectName": "app"
+        },
+        {
+            "type": "java",
             "name": "App",
             "request": "launch",
             "mainClass": "com.mycompany.app.App",
