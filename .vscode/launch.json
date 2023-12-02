@@ -1,18 +1,7 @@
 {
-    "configurations": [
-        {
-            "type": "java",
-            "name": "CLI",
-            "request": "launch",
-            "mainClass": "io.pwmcintyre.CLI",
-            "projectName": "app"
-        },
-        {
-            "type": "java",
-            "name": "App",
-            "request": "launch",
-            "mainClass": "com.mycompany.app.App",
-            "projectName": "app"
-        }
-    ]
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": []
 }

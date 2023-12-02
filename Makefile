@@ -1,8 +1,16 @@
 SHELL := /bin/bash
 
-build: target/cli-1.0.jar
-target/cli-1.0.jar:
-	mvn package
+# This version-strategy uses git tags to set the version string
+VERSION ?= $(shell git describe --tags --always --dirty)
 
-run: target/cli-1.0.jar
-	java -cp ./target/cli-1.0.jar io.pwmcintyre.CLI
+SRC := $(shell find . -type f -name '*.go')
+
+build: main.wasm
+main.wasm: $(SRC)
+	GOOS=wasip1 GOARCH=wasm go build -o main.wasm main.go
+
+run: main.wasm
+	wasmtime main.wasm
+
+days/1/main.wasm: days/1/main.go
+	GOOS=wasip1 GOARCH=wasm go build -o days/1/main.wasm days/1/main.go
