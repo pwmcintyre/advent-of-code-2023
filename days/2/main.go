@@ -20,7 +20,7 @@ func main() {
 	var (
 		line  string
 		sumP1 int
-		// sumP2  int
+		sumP2 int
 	)
 
 	scanner := bufio.NewScanner(source)
@@ -36,19 +36,19 @@ func main() {
 
 		// process
 		sumP1 += part1(line)
+		sumP2 += part2(line)
 	}
 	fmt.Fprintln(os.Stdout, sumP1)
+	fmt.Fprintln(os.Stdout, sumP2)
 }
 
 type game struct {
 	ID      int
 	Reveals []Reveal
+	Max     RGB
 }
 
-type Reveal struct {
-	RGB RGB
-	Sum int
-}
+type Reveal = RGB
 
 type RGB struct {
 	R int
@@ -84,13 +84,21 @@ func parse(line string) game {
 			fmt.Sscanf(strings.Trim(cg, " "), "%d %s", &count, &colour)
 			switch colour {
 			case "red":
-				r.RGB.R = count
+				r.R = count
+				if count > g.Max.R {
+					g.Max.R = count
+				}
 			case "green":
-				r.RGB.G = count
+				r.G = count
+				if count > g.Max.G {
+					g.Max.G = count
+				}
 			case "blue":
-				r.RGB.B = count
+				r.B = count
+				if count > g.Max.B {
+					g.Max.B = count
+				}
 			}
-			r.Sum += count
 		}
 
 		g.Reveals = append(g.Reveals, r)
@@ -99,28 +107,16 @@ func parse(line string) game {
 }
 
 func part1(line string) (val int) {
-
 	game := parse(line)
-	// defer func() { fmt.Printf("game %v %d\n", game, val) }()
-	fmt.Printf("%v\n", game)
-
-	// check if game is valid
 	for _, reveal := range game.Reveals {
-		if reveal.RGB.R > maxRed {
-			fmt.Println("🔥 red too high")
-		}
-		if reveal.RGB.G > maxGreen {
-			fmt.Println("🔥 green too high")
-		}
-		if reveal.RGB.B > maxBlue {
-			fmt.Println("🔥 blue too high")
-		}
-		if reveal.RGB.R > maxRed || reveal.RGB.B > maxBlue || reveal.RGB.G > maxGreen {
+		if reveal.R > maxRed || reveal.B > maxBlue || reveal.G > maxGreen {
 			return 0
 		}
 	}
-
-	fmt.Println("✅ valid")
 	return game.ID
+}
 
+func part2(line string) (val int) {
+	game := parse(line)
+	return game.Max.R * game.Max.G * game.Max.B
 }
