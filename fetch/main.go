@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -28,9 +27,9 @@ func main() {
 	flag.Parse()
 
 	// get input
-	res, err := Fetch(ctx, day, year, cookie)
+	res, err := Fetch(ctx, year, day, cookie)
 	if err != nil {
-		log.Fatalf("failed to get input data: %s", err)
+		fmt.Fprint(os.Stderr, err)
 	}
 
 	// print
@@ -53,6 +52,11 @@ func Fetch(ctx context.Context, year, day int, cookie string) ([]byte, error) {
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("sending request: %w", err)
+	}
+
+	// check status
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%d %s", res.StatusCode, http.StatusText(res.StatusCode))
 	}
 
 	// read body
