@@ -7,10 +7,7 @@ func Test_part1(t *testing.T) {
 		input  string
 		output int
 	}{
-		{
-			input:  "1abc2",
-			output: 12,
-		},
+		{input: "1abc2", output: 12},
 	}
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
