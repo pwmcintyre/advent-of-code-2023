@@ -10,8 +10,8 @@ import (
 
 const (
 	maxRed   = 12
-	maxBlue  = 13
-	maxGreen = 14
+	maxGreen = 13
+	maxBlue  = 14
 )
 
 var source io.Reader = os.Stdin

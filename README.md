@@ -20,20 +20,20 @@ source .env
 ... and then you can fetch:
 
 ```shell
-go run ./fetch -day 1 > 1.in
+go run ./fetch -day 1 > ./days/1/input.txt
 ```
 
 OR; Install and then use it:
 
 ```shell
 go install ./fetch
-fetch -day 1 > 1.in
+fetch -day 1 > ./days/1/input.txt
 ```
 
 ## Run it
 
 ```shell
-go run ./days/1 < 1.in
+go run ./days/1 < ./days/1/input.txt
 ```
 
 ## Compile to WASM
@@ -45,6 +45,6 @@ GOOS=wasip1 GOARCH=wasm go build -o days/1/main.wasm days/1/main.go
 ## Run as WASM
 
 ```shell
-wasmtime days/1/main.wasm < 1.txt
+wasmtime days/1/main.wasm < ./days/1/input.txt
 ```
 s
