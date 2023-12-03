@@ -14,8 +14,6 @@ const (
 	maxGreen = 14
 )
 
-var max = maxRed + maxBlue + maxGreen
-
 var source io.Reader = os.Stdin
 
 func main() {
