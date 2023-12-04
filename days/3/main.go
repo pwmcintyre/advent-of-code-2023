@@ -1,10 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/fatih/color"
 )
@@ -12,119 +12,84 @@ import (
 var source io.Reader = os.Stdin
 
 func main() {
-
-	// read whole of input
-	var line []byte
-	var input [][]byte = make([][]byte, 0)
-	scanner := bufio.NewScanner(source)
-	for scanner.Scan() {
-		line = scanner.Bytes()
-		if len(line) == 0 {
-			break
-		}
-		input = append(input, line)
-	}
-
-	fmt.Fprintf(os.Stdout, "%d\n", part1(input))
-}
-
-// returns true if there is a sign at the given coordinates
-func SignAt(board [][]bool, x, y int) bool {
-	if y < 0 || y >= len(board) {
-		return false
-	}
-	if x < 0 || x >= len(board[y]) {
-		return false
-	}
-	return board[y][x]
-}
-
-// returns true if there is a sign above, below or at the given coordinates
-func SignVertical(board [][]bool, x, y int) bool {
-	return SignAt(board, x, y-1) || SignAt(board, x, y) || SignAt(board, x, y+1)
+	bytes, _ := io.ReadAll(os.Stdin)
+	lines := strings.Split(strings.Trim(string(bytes), "\n"), "\n")
+	fmt.Fprintf(os.Stdout, "%d\n", part1(lines))
 }
 
 var (
 	white = color.New(color.FgWhite, color.Bold)
 	green = color.New(color.FgGreen, color.Bold)
-	blue  = color.New(color.FgBlue, color.Bold)
 	red   = color.New(color.FgRed, color.Bold)
 )
 
-func part1(input [][]byte) int {
+// setSymbolAt sets the sign at the given coordinates
+// (checks for bounds)
+func setSymbolAt(board [][]bool, x, y int) {
+	if y < 0 || y >= len(board) {
+		return
+	}
+	if x < 0 || x >= len(board[y]) {
+		return
+	}
+	board[y][x] = true
+}
 
-	// process signs to create a 2D board of where the signs are
-	var board [][]bool = make([][]bool, 0)
-	for y := 0; y < len(input); y++ {
-		board = append(board, make([]bool, len(input[y])))
-		for x := 0; x < len(input[y]); x++ {
-
-			// is digit
-			if input[y][x] >= '0' && input[y][x] <= '9' {
-				continue
-			}
-
-			// not a sign (".")
-			if input[y][x] == '.' {
-				continue
-			}
-
-			// assume sign
-			board[y][x] = true
+// setSymbolAtNeighbours sets the sign at the given coordinates, and also all the spaces around it
+func setSymbolAtNeighbours(board [][]bool, x, y int) {
+	for y2 := -1; y2 < 2; y2++ {
+		for x2 := -1; x2 < 2; x2++ {
+			setSymbolAt(board, x+x2, y+y2)
 		}
+	}
+}
 
+func part1(input []string) int {
+
+	// allocate board
+	// assumes width of input is constant
+	var board [][]bool = make([][]bool, len(input))
+	for y := range board {
+
+		// NOTE: i'm appending a "." to the end of each line,
+		// it makes things easier when digits abut the end of the line
+		input[y] = input[y] + "."
+		board[y] = make([]bool, len(input[y]))
 	}
 
-	// display
-	for y := 0; true && y < len(input); y++ {
+	// process symbols to create a 2D board of where the symbols are
+	// ALSO: set true for spaces around symbols
+	for y := 0; y < len(input); y++ {
 		for x := 0; x < len(input[y]); x++ {
 
 			// is digit
 			if input[y][x] >= '0' && input[y][x] <= '9' {
-				switch {
-				case SignVertical(board, x-1, y):
-					blue.Printf("%c", input[y][x])
-				case SignVertical(board, x, y):
-					green.Printf("%c", input[y][x])
-				case SignVertical(board, x+1, y):
-					blue.Printf("%c", input[y][x])
-				default:
-					white.Printf("%c", input[y][x])
-				}
 				continue
 			}
 
 			// not a sign (".")
 			if input[y][x] == '.' {
-				fmt.Printf(" ")
 				continue
 			}
 
 			// assume sign
-			fmt.Printf("×")
+			setSymbolAtNeighbours(board, x, y)
 		}
-		fmt.Printf("\n")
 
 	}
 
 	// process numbers
 	var sumP1 = 0
 	for y := 0; y < len(input); y++ {
-		var digits []int  // represents the digits of the part number as we're reading them
-		var nearSign bool // represents if there is a sign near the number
+		var digits []int    // represents the digits of the part number as we're reading them
+		var nearSymbol bool // represents if there is a sign near the number
 		for x := 0; x < len(input[y]); x++ {
 
 			// if it's a number; parse the digit; record if it's near a sign
 			if input[y][x] >= '0' && input[y][x] <= '9' {
 				digits = append(digits, int(input[y][x]-'0'))
-				nearSign = nearSign ||
-					SignVertical(board, x+1, y) ||
-					SignVertical(board, x, y) ||
-					SignVertical(board, x-1, y)
-
-				if x != len(input[y])-1 {
-					continue
-				}
+				nearSymbol = nearSymbol || board[y][x]
+				continue
 			}
 
 			// else if it's not a number, and we have digits,
@@ -141,25 +106,21 @@ func part1(input [][]byte) int {
 				digits = []int{}
 
 				// it needs to have been near a sign
-				if nearSign {
-					green.Printf("%d", number)
+				if nearSymbol {
+					green.Fprintf(os.Stdout, "%d", number)
 					sumP1 += number
 				} else {
-					red.Printf("%d", number)
+					red.Fprintf(os.Stdout, "%d", number)
 				}
-				nearSign = false
+
+				// reset
+				nearSymbol = false
 
 			}
 
-			// not a sign (".")
-			if input[y][x] == '.' {
-				fmt.Printf(" ")
-			} else if !(input[y][x] >= '0' && input[y][x] <= '9') {
-				fmt.Printf("×")
-			}
-
+			white.Fprintf(os.Stdout, "%c", input[y][x])
 		}
-		fmt.Printf("\n")
+		fmt.Fprintf(os.Stdout, "\n")
 	}
 
 	return sumP1
