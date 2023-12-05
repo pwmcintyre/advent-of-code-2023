@@ -77,3 +77,43 @@ func Test_part1c(t *testing.T) {
 		t.Errorf("part1() = %v, want %v", got, want)
 	}
 }
+
+func Test_part2(t *testing.T) {
+	var input []string = []string{
+		"467..114..",
+		"...*......",
+		"..35..633.",
+		"......#...",
+		"617*......",
+		".....+.58.",
+		"..592.....",
+		"......755.",
+		"...$.*....",
+		".664.598..",
+	}
+	want := 467835
+	if got := part2(input); got != want {
+		t.Errorf("part2() = %v, want %v", got, want)
+	}
+}
+
+func Test_part2b(t *testing.T) {
+	var input []string = []string{
+		"12.......*..",
+		"+.........34",
+		".......-12..",
+		"..78........",
+		"..*....60...",
+		"78.........9",
+		".5.....23..$",
+		"8...90*12...",
+		"............",
+		"2.2......12.",
+		".*.........*",
+		"1.1..503+.56",
+	}
+	want := 6756
+	if got := part2(input); got != want {
+		t.Errorf("part2() = %v, want %v", got, want)
+	}
+}
