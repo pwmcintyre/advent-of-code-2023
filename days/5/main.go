@@ -92,7 +92,7 @@ func part1(input []string) int {
 	// traverse graph; find smallest
 	var smallest int = -1
 	for _, seed := range seeds {
-		val := find(inventory, seed)
+		val := find(inventory, "seed", seed)
 		if smallest == -1 || val < smallest {
 			smallest = val
 		}
@@ -164,7 +164,7 @@ func part2(input []string) int {
 	var smallest int = -1
 	for _, seed := range seedPairs {
 		for s := 0; s <= seed[1]; s++ {
-			val := find(inventory, seed[0]+s)
+			val := find(inventory, "seed", seed[0]+s)
 			if smallest == -1 || val < smallest {
 				smallest = val
 			}
@@ -174,25 +174,32 @@ func part2(input []string) int {
 	return smallest
 }
 
-var cache map[int]int = make(map[int]int)
+var cache map[string]map[int]int = make(map[string]map[int]int)
+var cachedItem map[int]int
+var cacheOK bool
 
-func find(inventory map[string]*Mapping, seed int) int {
-	if cached, ok := cache[seed]; ok {
-		fmt.Printf("cache hit: %d\n", seed)
-		return cached
+func find(inventory map[string]*Mapping, category string, from int) (to int) {
+	if cachedItem, cacheOK = cache[category]; cacheOK {
+		if to, cacheOK = cachedItem[from]; cacheOK {
+			fmt.Printf("cache hit: %d > %d\n", from, to)
+			return to
+		}
+	} else {
+		cache[category] = make(map[int]int)
 	}
 	defer func() {
 		// fmt.Printf("cache miss: %d\n", seed)
-		cache[seed] = seed
+		cache[category][from] = to
 	}()
 	var mapping = inventory["seed"]
 	var ok bool
+	to = from
 	for {
 
 		// find the range which meets the critera
 		for _, r := range mapping.Ranges {
-			if seed >= r.SourceStart && seed <= r.SourceStart+r.Length {
-				seed = r.DestStart + (seed - r.SourceStart)
+			if to >= r.SourceStart && to <= r.SourceStart+r.Length {
+				to = r.DestStart + (to - r.SourceStart)
 				break
 			}
 		}
@@ -203,7 +210,7 @@ func find(inventory map[string]*Mapping, seed int) int {
 			break
 		}
 	}
-	return seed
+	return to
 }
 
 func parseSeeds(line string) ([]int, error) {
