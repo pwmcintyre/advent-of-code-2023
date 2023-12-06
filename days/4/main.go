@@ -44,14 +44,20 @@ func part1(input []string) int {
 }
 
 func part2(input []string) int {
-	var sum int = 0
+
+	// allocate cards; each card exists at least once
 	var cards map[int]int = make(map[int]int)
+	for k := 1; k <= len(input); k++ {
+		cards[k] = 1
+	}
+
+	// parse card stack
 	for _, line := range input {
 
 		// parse
 		cardID, winningNumbers, myNumbers := parseLine(line)
 
-		// check
+		// check for winning numbers
 		var wins int = 0
 		for _, num := range myNumbers {
 			if _, ok := winningNumbers[num]; ok {
@@ -59,9 +65,21 @@ func part2(input []string) int {
 			}
 		}
 
-		sum += prize
+		// add a copy of the next cards FOR EACH copy of THIS card
+		for i := cardID + 1; i <= cardID+wins; i++ {
+			if _, ok := cards[i]; ok {
+				cards[i] += cards[cardID]
+			}
+		}
 
 	}
+
+	// count up the cards
+	var sum int = 0
+	for _, count := range cards {
+		sum += count
+	}
+
 	return sum
 }
 

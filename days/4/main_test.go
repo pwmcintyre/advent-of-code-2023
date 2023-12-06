@@ -40,7 +40,7 @@ func Test_part2(t *testing.T) {
 		"Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11",
 	}
 	want := 30
-	if got := part1(input); got != want {
-		t.Errorf("part1() = %v, want %v", got, want)
+	if got := part2(input); got != want {
+		t.Errorf("part2() = %v, want %v", got, want)
 	}
 }
