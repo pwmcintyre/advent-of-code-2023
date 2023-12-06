@@ -20,66 +20,119 @@ func run(source io.Reader, target io.Writer) {
 	fmt.Fprint(target, part1(lines))
 }
 
+type Node struct {
+	Name    string
+	Next    *Node
+	Mapping map[int]int
+}
+
 func part1(input []string) int {
-	var sum int = 0
-	var inventory map[string]map[int]int = make(map[string]map[int]int)
+	var err error
 
 	// assume first line is seeds
-	seeds := parseSeeds(input[0])
+	seeds, err := parseSeeds(input[0])
+	if err != nil {
+		panic(fmt.Errorf("error at line %s: %w", input[0], err))
+	}
+	fmt.Println(seeds)
 
 	// parse mappings
 	var source, dest string
+	var sourceStartRange, destinationStartRange, rangeLength int
+	var inventory map[string]*Node = make(map[string]*Node)
 	for _, line := range input[1:] {
 		if line == "" {
 			continue
 		}
-		if strings.Contains(line, "map") {
-			source, dest = parseMapHeader(line)
-		} else {
-			numbers := parseNumbers(line)
-			if len(numbers) != 3 {
-				panic(fmt.Sprintf("invalid input: %s", line))
+
+		// parse map header
+		if strings.HasSuffix(line, "map:") {
+			source, dest, err = parseMapHeader(line)
+			if err != nil {
+				panic(fmt.Errorf("error at line %s: %w", line, err))
 			}
-			// ... TODO
+			if _, ok := inventory[dest]; !ok {
+				inventory[dest] = &Node{
+					Name:    dest,
+					Next:    nil,
+					Mapping: make(map[int]int),
+				}
+			}
+			if _, ok := inventory[source]; !ok {
+				inventory[source] = &Node{
+					Name:    source,
+					Next:    inventory[dest],
+					Mapping: make(map[int]int),
+				}
+			}
+			inventory[source].Next = inventory[dest]
+		} else { // parse map section
+			numbers, err := parseNumbers(line)
+			if err != nil {
+				panic(fmt.Errorf("error at line %s: %w", line, err))
+			}
+			if len(numbers) != 3 {
+				panic(fmt.Sprintf("invalid line, need 3 numbers: %s", line))
+			}
+			destinationStartRange = numbers[0]
+			sourceStartRange = numbers[1]
+			rangeLength = numbers[2]
+			for i := 0; i < rangeLength; i++ {
+				inventory[source].Mapping[sourceStartRange+i] = destinationStartRange + i
+			}
 		}
 	}
 
-	return sum
+	// traverse graph; find smallest
+	var smallest int = -1
+	var sourceID, destID int
+	var ok bool
+	for _, sID := range seeds {
+
+		this := inventory["seed"]
+		next := this.Next
+		destID = sID
+		for this.Next != nil {
+
+			//  n = next
+			next = this.Next
+			sourceID = destID
+			destID, ok = next.Mapping[sourceID]
+			if !ok {
+				destID = sourceID
+			}
+			this = this.Next
+
+		}
+
+		// end of graph; compare ID
+		if smallest == -1 || destID < smallest {
+			smallest = destID
+		}
+
+	}
+
+	return smallest
 }
 
-func parseSeeds(line string) []int {
+func parseSeeds(line string) ([]int, error) {
 	parts := strings.Split(line, ":")
 	if len(parts) != 2 {
-		panic(fmt.Sprintf("invalid seed input: %s", line))
+		return nil, fmt.Errorf("invalid seed input: %s", line)
 	}
 	return parseNumbers(parts[1])
 }
 
-func parseMapHeader(line string) (string, string) {
+func parseMapHeader(line string) (string, string, error) {
 	re := regexp.MustCompile(`^(\w+)-to-(\w+) map:$`)
 	matches := re.FindStringSubmatch(line)
 	if len(matches) != 3 {
-		panic(fmt.Sprintf("invalid category line: %s", line))
+		return "", "", fmt.Errorf("invalid category line: %s", line)
 	}
-	return matches[1], matches[2]
+	return matches[1], matches[2], nil
 }
 
-func parseLine(line string) (int, map[int]int, map[int]int) {
-	re := regexp.MustCompile(`^Card +(\d+): (.*) \| (.*)$`)
-	matches := re.FindStringSubmatch(line)
-	if len(matches) != 4 {
-		panic(fmt.Sprintf("invalid input: %s", line))
-	}
-	cardID, err := strconv.Atoi(matches[1])
-	if err != nil {
-		panic(fmt.Sprintf("invalid number: %s", matches[1]))
-	}
-	winningNumbers := parseNumbers(matches[2])
-	myNumbers := parseNumbers(matches[3])
-	return cardID, winningNumbers, myNumbers
-}
-
-func parseNumbers(line string) []int {
+func parseNumbers(line string) ([]int, error) {
 	var numbers []int = make([]int, 0)
 	for _, num := range strings.Split(line, " ") {
 		if num == "" {
@@ -87,9 +140,9 @@ func parseNumbers(line string) []int {
 		}
 		n, err := strconv.Atoi(num)
 		if err != nil {
-			panic(fmt.Sprintf("invalid number: %s", num))
+			return nil, fmt.Errorf("invalid number: %s", num)
 		}
 		numbers = append(numbers, n)
 	}
-	return numbers
+	return numbers, nil
 }

@@ -42,7 +42,7 @@ func Fetch(ctx context.Context, year, day int, cookie string) ([]byte, error) {
 	url := fmt.Sprintf("https://adventofcode.com/%d/day/%d/input", year, day)
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("creating request: %w", err)
+		return nil, fmt.Errorf("creating request to %s: %w", url, err)
 	}
 
 	// add cookie
@@ -51,14 +51,17 @@ func Fetch(ctx context.Context, year, day int, cookie string) ([]byte, error) {
 	// send request
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("sending request: %w", err)
+		return nil, fmt.Errorf("sending request to %s: %w", url, err)
 	}
+
+	// attempt to get body
+	blob, err2 := io.ReadAll(res.Body)
 
 	// check status
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%d %s", res.StatusCode, http.StatusText(res.StatusCode))
+		return nil, fmt.Errorf("%d %s: %s", res.StatusCode, http.StatusText(res.StatusCode), blob)
 	}
 
 	// read body
-	return io.ReadAll(res.Body)
+	return blob, err2
 }

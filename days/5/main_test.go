@@ -13,7 +13,7 @@ var sample string
 func Test_sample(t *testing.T) {
 	source := strings.NewReader(sample)
 	target := new(bytes.Buffer)
-	want := "0"
+	want := "35"
 	run(source, target)
 	if got := target.String(); got != want {
 		t.Errorf("part1() = %v, want %v", got, want)
