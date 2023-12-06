@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -20,10 +21,16 @@ func run(source io.Reader, target io.Writer) {
 	fmt.Fprint(target, part1(lines))
 }
 
-type Node struct {
-	Name    string
-	Next    *Node
-	Mapping map[int]int
+type Mapping struct {
+	Source string
+	Dest   string
+	Ranges []Range
+}
+
+type Range struct {
+	SourceStart int
+	DestStart   int
+	Length      int
 }
 
 func part1(input []string) int {
@@ -38,8 +45,8 @@ func part1(input []string) int {
 
 	// parse mappings
 	var source, dest string
-	var sourceStartRange, destinationStartRange, rangeLength int
-	var inventory map[string]*Node = make(map[string]*Node)
+	var inventory map[string]*Mapping = make(map[string]*Mapping)
+	var mapping *Mapping
 	for _, line := range input[1:] {
 		if line == "" {
 			continue
@@ -51,21 +58,13 @@ func part1(input []string) int {
 			if err != nil {
 				panic(fmt.Errorf("error at line %s: %w", line, err))
 			}
-			if _, ok := inventory[dest]; !ok {
-				inventory[dest] = &Node{
-					Name:    dest,
-					Next:    nil,
-					Mapping: make(map[int]int),
-				}
+			mapping = &Mapping{
+				Source: source,
+				Dest:   dest,
+				Ranges: make([]Range, 0),
 			}
-			if _, ok := inventory[source]; !ok {
-				inventory[source] = &Node{
-					Name:    source,
-					Next:    inventory[dest],
-					Mapping: make(map[int]int),
-				}
-			}
-			inventory[source].Next = inventory[dest]
+			inventory[source] = mapping
+
 		} else { // parse map section
 			numbers, err := parseNumbers(line)
 			if err != nil {
@@ -74,40 +73,47 @@ func part1(input []string) int {
 			if len(numbers) != 3 {
 				panic(fmt.Sprintf("invalid line, need 3 numbers: %s", line))
 			}
-			destinationStartRange = numbers[0]
-			sourceStartRange = numbers[1]
-			rangeLength = numbers[2]
-			for i := 0; i < rangeLength; i++ {
-				inventory[source].Mapping[sourceStartRange+i] = destinationStartRange + i
-			}
+			inventory[source].Ranges = append(inventory[source].Ranges, Range{
+				DestStart:   numbers[0],
+				SourceStart: numbers[1],
+				Length:      numbers[2],
+			})
 		}
+	}
+
+	// sort mappings
+	for _, m := range inventory {
+		sort.Slice(m.Ranges, func(i, j int) bool {
+			return m.Ranges[i].SourceStart < m.Ranges[j].SourceStart
+		})
 	}
 
 	// traverse graph; find smallest
 	var smallest int = -1
-	var sourceID, destID int
 	var ok bool
-	for _, sID := range seeds {
+	for _, seed := range seeds {
+		val := seed
+		mapping = inventory["seed"]
+		for {
 
-		this := inventory["seed"]
-		next := this.Next
-		destID = sID
-		for this.Next != nil {
-
-			//  n = next
-			next = this.Next
-			sourceID = destID
-			destID, ok = next.Mapping[sourceID]
-			if !ok {
-				destID = sourceID
+			// find the range which meets the critera
+			for _, r := range mapping.Ranges {
+				if val >= r.SourceStart && val <= r.SourceStart+r.Length {
+					val = r.DestStart + (val - r.SourceStart)
+					break
+				}
 			}
-			this = this.Next
 
+			// move to the next category; until no more to move
+			mapping, ok = inventory[mapping.Dest]
+			if !ok {
+				break
+			}
 		}
 
-		// end of graph; compare ID
-		if smallest == -1 || destID < smallest {
-			smallest = destID
+		// check if smallest
+		if smallest == -1 || val < smallest {
+			smallest = val
 		}
 
 	}
