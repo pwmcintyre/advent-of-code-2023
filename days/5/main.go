@@ -19,7 +19,7 @@ func main() {
 func run(source io.Reader, target io.Writer) {
 	bytes, _ := io.ReadAll(source)
 	lines := strings.Split(strings.Trim(string(bytes), "\n"), "\n")
-	fmt.Fprint(target, part1(lines))
+	// fmt.Fprint(target, part1(lines))
 	fmt.Fprint(target, part2(lines))
 }
 
@@ -114,7 +114,7 @@ func part2(input []string) int {
 	for i := 0; i < len(seeds); i += 2 {
 		seedPairs = append(seedPairs, []int{seeds[i], seeds[i+1]})
 	}
-	fmt.Println(seedPairs)
+	// fmt.Println(seedPairs)
 
 	// parse mappings
 	var source, dest string
@@ -170,7 +170,7 @@ func part2(input []string) int {
 
 		wg.Add(1)
 		var wgsmallest int = -1
-		fmt.Printf("wg spawned: %v\n", seed)
+		// fmt.Printf("wg spawned: %v\n", seed)
 		go func(seed []int) {
 			defer wg.Done()
 			for s := 0; s <= seed[1]; s++ {
@@ -183,11 +183,11 @@ func part2(input []string) int {
 				}
 				// fmt.Printf("\n")
 			}
-			fmt.Printf("wg done: %v %d\n", seed, wgsmallest)
+			// fmt.Printf("wg done: %v %d\n", seed, wgsmallest)
 
 			mutex.Lock()
 			if smallest == -1 || wgsmallest < smallest {
-				smallest = val
+				smallest = wgsmallest
 				// fmt.Print("smallest!")
 			}
 			mutex.Unlock()
