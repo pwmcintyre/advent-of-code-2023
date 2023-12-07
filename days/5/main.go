@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 func main() {
@@ -161,15 +162,40 @@ func part2(input []string) int {
 	}
 
 	// traverse graph; find smallest
+	var val int
+	wg := sync.WaitGroup{}
 	var smallest int = -1
+	var mutex = &sync.Mutex{}
 	for _, seed := range seedPairs {
-		for s := 0; s <= seed[1]; s++ {
-			val := getFrom(inventory, "seed", seed[0]+s)
-			if smallest == -1 || val < smallest {
-				smallest = val
+
+		wg.Add(1)
+		var wgsmallest int = -1
+		fmt.Printf("wg spawned: %v\n", seed)
+		go func(seed []int) {
+			defer wg.Done()
+			for s := 0; s <= seed[1]; s++ {
+				// fmt.Printf("seed  %d ", seed[0]+s)
+				val = getFrom(inventory, "seed", seed[0]+s)
+				// fmt.Printf(" > %d", val)
+				if wgsmallest == -1 || val < wgsmallest {
+					wgsmallest = val
+					// fmt.Print("smallest!")
+				}
+				// fmt.Printf("\n")
 			}
-		}
+			fmt.Printf("wg done: %v %d\n", seed, wgsmallest)
+
+			mutex.Lock()
+			if smallest == -1 || wgsmallest < smallest {
+				smallest = val
+				// fmt.Print("smallest!")
+			}
+			mutex.Unlock()
+		}(seed)
+
 	}
+
+	wg.Wait()
 
 	return smallest
 }
@@ -181,18 +207,25 @@ var cacheOK bool
 var mem map[string]int = make(map[string]int)
 var memOK bool
 
-func getFrom(inventory map[string]*Mapping, category string, id int) (to int) {
+func getFromCached(inventory map[string]*Mapping, category string, id int) (to int) {
 
 	// cache check
 	var key = fmt.Sprintf("%s:%d", category, id)
 	if to, memOK = mem[key]; memOK {
-		fmt.Printf("cache hit: %s > %d\n", key, to)
+		// fmt.Printf("cache hit: %s > %d\n", key, to)
 		return to
 	}
 	defer func() {
 		// fmt.Printf("cache miss: %s\n", key)
+		// fmt.Print(category[0:1])
 		mem[key] = to
 	}()
+
+	to = getFrom(inventory, inventory[category].Dest, id)
+	return
+}
+
+func getFrom(inventory map[string]*Mapping, category string, id int) (to int) {
 
 	// end of tree
 	if _, ok := inventory[category]; !ok {
@@ -216,7 +249,7 @@ func getFrom(inventory map[string]*Mapping, category string, id int) (to int) {
 func find(inventory map[string]*Mapping, category string, from int) (to int) {
 	if cachedItem, cacheOK = cache[category]; cacheOK {
 		if to, cacheOK = cachedItem[from]; cacheOK {
-			fmt.Printf("cache hit: %d > %d\n", from, to)
+			// fmt.Printf("cache hit: %d > %d\n", from, to)
 			return to
 		}
 	} else {
