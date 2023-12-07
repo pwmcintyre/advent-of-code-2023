@@ -164,7 +164,7 @@ func part2(input []string) int {
 	var smallest int = -1
 	for _, seed := range seedPairs {
 		for s := 0; s <= seed[1]; s++ {
-			val := find(inventory, "seed", seed[0]+s)
+			val := getFrom(inventory, "seed", seed[0]+s)
 			if smallest == -1 || val < smallest {
 				smallest = val
 			}
@@ -177,6 +177,41 @@ func part2(input []string) int {
 var cache map[string]map[int]int = make(map[string]map[int]int)
 var cachedItem map[int]int
 var cacheOK bool
+
+var mem map[string]int = make(map[string]int)
+var memOK bool
+
+func getFrom(inventory map[string]*Mapping, category string, id int) (to int) {
+
+	// cache check
+	var key = fmt.Sprintf("%s:%d", category, id)
+	if to, memOK = mem[key]; memOK {
+		fmt.Printf("cache hit: %s > %d\n", key, to)
+		return to
+	}
+	defer func() {
+		// fmt.Printf("cache miss: %s\n", key)
+		mem[key] = to
+	}()
+
+	// end of tree
+	if _, ok := inventory[category]; !ok {
+		return id
+	}
+
+	// find the range which meets the criteria
+	to = id
+	for _, r := range inventory[category].Ranges {
+		if to >= r.SourceStart && to <= r.SourceStart+r.Length {
+			to = r.DestStart + (to - r.SourceStart)
+			break
+		}
+	}
+
+	// step
+	return getFrom(inventory, inventory[category].Dest, to)
+
+}
 
 func find(inventory map[string]*Mapping, category string, from int) (to int) {
 	if cachedItem, cacheOK = cache[category]; cacheOK {
