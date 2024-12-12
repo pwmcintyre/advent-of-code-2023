@@ -12,5 +12,5 @@ main.wasm: $(SRC)
 run: main.wasm
 	wasmtime main.wasm
 
-days/1/main.wasm: days/1/main.go
-	GOOS=wasip1 GOARCH=wasm go build -o days/1/main.wasm days/1/main.go
+2023/1/main.wasm: 2023/1/main.go
+	GOOS=wasip1 GOARCH=wasm go build -o 2023/1/main.wasm 2023/1/main.go

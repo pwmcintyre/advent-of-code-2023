@@ -1,8 +1,8 @@
-# advent-of-code-2023
+# Advent of Code
 
-Golang implementation of [Advent of Code 2023](https://adventofcode.com/2023).
+Golang implementation of [Advent of Code](https://adventofcode.com).
 
-My ultimate goal is to compile these to WebAssembly and run them in the browser; so that anybody can run their input.
+My ultimate goal is to compile these to WebAssembly and run them in the browser; so that anybody can run their input. (WIP)
 
 ## Get input file
 
@@ -20,31 +20,30 @@ source .env
 ... and then you can fetch:
 
 ```shell
-go run ./fetch -day 1 > ./days/1/input.txt
+go run ./fetch -year 2023 -day 1 > ./2023/1/input.txt
 ```
 
 OR; Install and then use it:
 
 ```shell
 go install ./fetch
-fetch -day 1 > ./days/1/input.txt
+fetch -year 2023 -day 1 > ./2023/1/input.txt
 ```
 
 ## Run it
 
 ```shell
-go run ./days/1 < ./days/1/input.txt
+go run ./2023/1 < ./2023/1/input.txt
 ```
 
 ## Compile to WASM
 
 ```shell
-GOOS=wasip1 GOARCH=wasm go build -o days/1/main.wasm days/1/main.go
+GOOS=wasip1 GOARCH=wasm go build -o 2023/1/main.wasm 2023/1/main.go
 ```
 
 ## Run as WASM
 
 ```shell
-wasmtime days/1/main.wasm < ./days/1/input.txt
+wasmtime 2023/1/main.wasm < ./2023/1/input.txt
 ```
-s
