@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -21,11 +22,20 @@ func run(source io.Reader, target io.Writer) {
 
 func part1(input []string) (result int) {
 
-	// parse levels
-	var reports [][]int = make([][]int, len(input))
-	for l, line := range input {
-		reports[l] = make([]int, 5)
-		fmt.Sscanf(line, "%d %d %d %d %d", &reports[l][0], &reports[l][1], &reports[l][2], &reports[l][3], &reports[l][4])
+	// parse reports
+	reports := make([][]int, len(input))
+	for r, line := range input {
+
+		// parse level (as numbers)
+		parts := strings.Fields(line)
+		reports[r] = make([]int, len(parts))
+		for l, part := range parts {
+			num, err := strconv.Atoi(part)
+			if err != nil {
+				os.Exit(1)
+			}
+			reports[r][l] = num
+		}
 	}
 
 	// valid reports
@@ -40,7 +50,7 @@ func part1(input []string) (result int) {
 
 func isSafe(report []int) bool {
 	var increasing = report[0] < report[1]
-	for i := 0; i < 4; i++ {
+	for i := 0; i < len(report)-1; i++ {
 
 		// The levels are either all increasing or all decreasing.
 		if increasing != (report[i] < report[i+1]) {

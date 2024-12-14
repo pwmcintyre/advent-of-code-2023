@@ -26,7 +26,7 @@ var actual string
 func Test_actual(t *testing.T) {
 	source := strings.NewReader(actual)
 	target := new(bytes.Buffer)
-	want := "495" // too high
+	want := "463"
 	run(source, target)
 	if got := target.String(); got != want {
 		t.Errorf("part1() = %v, want %v", got, want)
