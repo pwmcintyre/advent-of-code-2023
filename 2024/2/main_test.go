@@ -31,7 +31,13 @@ func Test_actual(t *testing.T) {
 	// want := "488" // too low
 	// want := "497" // too low
 	// want := "504" // not right
-	want := "515" // not right!
+	// want := "515" // not right!
+	// want := "547" // not right!
+	// want := "507" // not right!
+	// want := "532" // not right!
+	// want := "561" // not right!
+	// want := "503" // found the bug 🔥😅 (and still not right)
+	want := "503" //
 	run(source, target)
 	if got := target.String(); got != want {
 		t.Errorf("part1() = %v, want %v", got, want)

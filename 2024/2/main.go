@@ -49,40 +49,52 @@ func part1(input []string) (result int) {
 }
 
 func isSafe(report []int, tolerance int) bool {
-	// calculate deltas
-	var deltas = make([]int, len(report)-1)
-	for i := 0; i < len(report)-1; i++ {
-		deltas[i] = report[i+1] - report[i]
-	}
 
-	// check deltas
-	var increasing = deltas[0] > 0
 	var errors = 0
-	for _, delta := range deltas {
+	var increasing = report[0] < report[1]
+	for i := 0; i < len(report)-1; i++ {
+		var delta = report[i+1] - report[i]
 
-		if !func() bool {
-
-			// The levels are either all increasing or all decreasing.
-			if increasing && delta < 0 {
-				return false
-			}
-
-			// Any two adjacent levels differ by at least one and at most three.
-			if delta < -3 || delta > 3 {
-				return false
-			}
-			if delta > -1 && delta < 1 {
-				return false
-			}
-
-			return true
-		}() {
+		if !check(increasing, delta) {
 			errors++
-			continue
-		}
 
+			if errors > tolerance {
+				return false
+			}
+
+			// attempt to remove a level
+			var t = tolerance - 1
+			for j := 0; j < len(report)-1; j++ {
+				r := report[:j:j]
+				r = append(r, report[j+1:]...)
+				if isSafe(r, t) {
+					return true
+				}
+			}
+			return false
+
+		}
 	}
-	return errors <= tolerance
+
+	return true
+}
+
+func check(increasing bool, delta int) bool {
+
+	// The levels are either all increasing or all decreasing.
+	if increasing == (delta < 0) {
+		return false
+	}
+
+	// Any two adjacent levels differ by at least one and at most three.
+	if delta < -3 || delta > 3 {
+		return false
+	}
+	if delta > -1 && delta < 1 {
+		return false
+	}
+
+	return true
 }
 
 func part2(input []string) (result int) {
